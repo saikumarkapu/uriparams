@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="accountDetailsByUriParams" doc:id="5f378ac1-c405-4226-8db2-d14aadcf9fe2" >
+		<logger level="INFO" doc:name="Logger" doc:id="c7ca77d2-8d46-43fa-8c1f-6ec431815e81" message="accountDetailsByUriParamsFlow starts................"/>
+		<db:select doc:name="Select" doc:id="2c7daf48-d08d-45b9-90d8-ab9af28e5b45" config-ref="Database_Config">
+			<db:sql ><![CDATA[ select * from account where accountId=:accId;  ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+           accId:attributes.uriParams.'id'
+   }]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="89c63fb3-fcf0-4a39-888e-be3f92c83a41" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="06d8884d-053b-4978-b9ac-2a9328e2add3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="9317b0fb-aec1-4cf8-a266-586ee10f6448" type="ACC:INVALID_ACCOUNT_ID" description="Invalid account id"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="d750c04b-bb2f-4de5-8d3b-63a838bcdafe" message="DB Response after transforamtion................ #[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f00cc05f-55dc-4b18-bc3b-6eb696aea673" >
+				<ee:transform doc:name="Transform Message" doc:id="bf32e15c-b5ce-4199-b565-6075ef34e33e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	statusCode:400,
+	message:error.description
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="837c2e76-df80-44ea-b878-be101c70aa0f" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+</mule>
+	

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="uriupdateAccountFlow" doc:id="7adcca89-351a-4834-a1f7-ec91103841b0" >
+		<logger level="INFO" doc:name="Logger" doc:id="9de6e06f-78c9-4578-b270-37a8fab6a768" message="updateAccountflow starts..........."/>
+		<db:update doc:name="Update" doc:id="cd307fe4-0399-499f-902f-2ebecb76d0b1" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE account SET name  = :name,
+				   phone = :mob,
+				   email = :email
+		     WHERE accountid = :accid;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+		accid : payload.account,
+		name : payload.name,
+		mob : payload.mob,
+		email : payload.email
+	}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="29c696e4-150a-47f8-a69a-5eeaaee4b466" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  statusCode: 200,
+  message: "Account updated successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="02ea326d-cad0-4053-8cb7-d25e25c8744f" message="db response after transformation.............#[payload]"/>
+	</flow>
+</mule>

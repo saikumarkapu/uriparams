@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+	<http:listener-config
+		name="accountapi-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<apikit:config name="accountapi-config"
+		api="accountapi.raml" outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<flow name="accountapi-main">
+		<http:listener
+			config-ref="accountapi-httpListenerConfig" path="/api/*">
+			<http:response
+				statusCode="#[vars.httpStatus default 200]">
+				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
+			</http:response>
+			<http:error-response
+				statusCode="#[vars.httpStatus default 500]">
+				<http:body>#[payload]</http:body>
+				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
+			</http:error-response>
+		</http:listener>
+		<apikit:router config-ref="accountapi-config" />
+		<error-handler>
+			<on-error-propagate type="APIKIT:BAD_REQUEST">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">400
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">404
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate
+				type="APIKIT:METHOD_NOT_ALLOWED">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">405
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">406
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate
+				type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">415
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">501
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="accountapi-console">
+		<http:listener
+			config-ref="accountapi-httpListenerConfig" path="/console/*">
+			<http:response
+				statusCode="#[vars.httpStatus default 200]">
+				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
+			</http:response>
+			<http:error-response
+				statusCode="#[vars.httpStatus default 500]">
+				<http:body>#[payload]</http:body>
+				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
+			</http:error-response>
+		</http:listener>
+		<apikit:console config-ref="accountapi-config" />
+		<error-handler>
+			<on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform
+					xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">404
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="put:\updateAccount:application\json:accountapi-config">
+		<flow-ref doc:name="updateAccountFlow"
+			doc:id="bd3600ad-681e-4ef5-8c5e-81b9aa3c65d3"
+			name="updateAccountFlow" />
+	</flow>
+	<flow
+		name="put:\updateAccount\(id):application\json:accountapi-config">
+		<ee:transform
+			xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+			<ee:variables>
+				<ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="uriupdateAccountFlow"
+			doc:id="fe8b51d0-87d7-44d0-a8fb-f04b7773890e"
+			name="uriupdateAccountFlow" />
+		<logger level="INFO"
+			message="put:\updateAccount\(id):application\json:accountapi-config" />
+	</flow>
+	<flow name="delete:\deleteAccount:accountapi-config">
+		<flow-ref doc:name="deleteAccountFlow"
+			doc:id="705d82de-a13f-4b92-94fe-c073b09cdaac"
+			name="deleteAccountFlow" />
+	</flow>
+	<flow name="delete:\deleteAccount\(id):accountapi-config">
+		<ee:transform
+			xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+			<ee:variables>
+				<ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="urideleteAccountFlow"
+			doc:id="0c429de5-1bec-4721-8e44-378f03148c54"
+			name="urideleteAccountFlow" />
+	</flow>
+	<flow name="get:\accountDetails:accountapi-config">
+		<flow-ref doc:name="accountDetailsFlow"
+			doc:id="8792c322-1bc4-416c-acce-b0e93926ca4c"
+			name="accountDetailsFlow" />
+	</flow>
+	<flow name="get:\accountDetails\(id):accountapi-config">
+		<ee:transform
+			xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+			<ee:variables>
+				<ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="accountDetailsByUriParams"
+			doc:id="602b95d9-2122-4cb0-8182-8547ebc4a2c9"
+			name="accountDetailsByUriParams" />
+	</flow>
+	<flow
+		name="post:\createAccount:application\json:accountapi-config">
+		<flow-ref doc:name="Flow Reference"
+			doc:id="830695cb-c925-4c77-9d78-63d60abdebf1"
+			name="createAccountFlow" />
+	</flow>
+	<flow
+		name="post:\createAccount\(id):application\json:accountapi-config">
+		<ee:transform
+			xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+			<ee:variables>
+				<ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="uricreaterFlow"
+			doc:id="87d17894-04a2-43be-8420-b77b970fb8d6" name="uricreaterFlow" />
+		<logger level="INFO"
+			message="post:\createAccount\(id):application\json:accountapi-config" />
+	</flow>
+</mule>

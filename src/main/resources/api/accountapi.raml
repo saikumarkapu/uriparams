@@ -1,0 +1,126 @@
+#%RAML 1.0
+title: accountapi
+
+/createAccount:
+  post:
+    body:
+      application/json:
+        example:
+                  {
+                     "name":"mark",
+                     "mobileNo":"9000000004",
+                     "emailId":"mark@gmail.com"
+                  }
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+                      {
+                          "statusCode": 200,
+                          "message": "Account created successfully"
+                      }  
+  /{id}:
+    post:
+      body:
+        application/json:
+          example:
+             {
+                          "statusCode": 200,
+                          "message": "Account created successfully"
+             }  
+/accountDetails:
+  get:
+    queryParameters:
+      accountId:
+        example: '1001'
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+                 {
+                     "name":"mark",
+                     "mobileNo":"9000000004",
+                     "emailId":"mark@gmail.com"
+                  }
+  /{id}:
+   get:
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+                  {
+                     "name":"mark",
+                     "mobileNo":"9000000004",
+                     "emailId":"mark@gmail.com"
+                  }                 
+/updateAccount:
+  put:
+    body:
+      application/json:
+        example:
+          {
+              "account": "1001",
+              "name": "ram",
+              "mob": 9000000001,
+              "email": "ram@gmail.com"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              [
+                {
+                  statuscod: 200,
+                  message: "Account updated successfully"
+                }
+              ]
+  /{id}:
+    put:
+      body:
+        application/json:
+          example:
+              [
+                {
+                  statuscod: 200,
+                  message: "Account updated successfully"
+                }
+              ]
+                
+/deleteAccount:
+  delete:
+    queryParameters:
+      account:
+        example:
+          "1001"
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              [
+                {
+                  statuscod: 200,
+                  message: "Account deleted successfully"
+                }
+              ]                                    
+  /{id}:
+   delete:
+    responses:
+      200:
+        body:
+          application/json:
+            example: 
+                                    [
+                {
+                  statuscod: 200,
+                  message: "Account deleted successfully"
+                }
+              ]                                    
+               
+            
+            
+                                          
